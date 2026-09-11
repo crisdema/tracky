@@ -1,0 +1,127 @@
+package com.crisdema.tracky.ui.screens.categorytransactions
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.crisdema.tracky.R
+import com.crisdema.tracky.data.model.Transaction
+import com.crisdema.tracky.data.model.TransactionType
+import com.crisdema.tracky.ui.screens.categories.ALL_ICONS_FLAT
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryTransactionsScreen(
+    onBack: () -> Unit,
+    viewModel: CategoryTransactionsViewModel = hiltViewModel()
+) {
+    val state by viewModel.uiState.collectAsState()
+    val currency = remember(state.currencyCode) {
+        NumberFormat.getCurrencyInstance().apply {
+            runCatching { this.currency = Currency.getInstance(state.currencyCode) }
+        }
+    }
+    val deleteDesc = stringResource(R.string.action_delete)
+
+    val categoryColor = remember(state.category?.colorHex) {
+        state.category?.colorHex
+            ?.let { runCatching { Color(it.toColorInt()) }.getOrNull() }
+            ?: Color.Gray
+    }
+    val iconResId = ALL_ICONS_FLAT[state.category?.icon] ?: R.drawable.ic_category
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(state.category?.name ?: stringResource(R.string.settings_categories)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.action_back)
+                        )
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding).fillMaxWidth()) {
+            Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(painter = painterResource(id = iconResId), contentDescription = null, tint = categoryColor)
+                        Text(
+                            state.category?.name.orEmpty(),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                    Text(currency.format(state.total), style = MaterialTheme.typography.titleLarge)
+                }
+            }
+
+            LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                items(state.transactions, key = { it.id }) { txn ->
+                    CategoryTransactionRow(
+                        txn = txn,
+                        currency = currency,
+                        deleteDesc = deleteDesc,
+                        onDelete = { viewModel.deleteTransaction(txn.id) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryTransactionRow(
+    txn: Transaction,
+    currency: NumberFormat,
+    deleteDesc: String,
+    onDelete: () -> Unit
+) {
+    val dateFormat = remember(txn.id) { SimpleDateFormat("MMM d", Locale.getDefault()) }
+    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                if (txn.note.isNotBlank()) Text(txn.note, style = MaterialTheme.typography.bodyLarge)
+
+                Text(dateFormat.format(Date(txn.date)), style = MaterialTheme.typography.bodySmall)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                val sign = if (txn.type == TransactionType.EXPENSE) "-" else "+"
+                Text("$sign${currency.format(txn.amount)}", style = MaterialTheme.typography.titleMedium)
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = deleteDesc)
+                }
+            }
+        }
+    }
+}

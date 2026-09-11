@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+app/build/
+
+# Local config (machine-specific, never share)
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Keystores — never commit signing keys
+*.jks
+*.keystore
+
+# Firebase config — contains API keys; keep out of public repos.
+# If your repo will be private-only and you want it versioned anyway, you can remove this line.
+google-services.json
+
+# Logs
+*.log

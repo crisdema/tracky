@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Wallet body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,38 L80,38 C83.31,38 86,40.69 86,44 L86,68 C86,71.31 83.31,74 80,74 L28,74 C24.69,74 22,71.31 22,68 L22,44 C22,40.69 24.69,38 28,38 Z" />
+    <!-- Fold flap accent -->
+    <path
+        android:fillColor="#E8E1FF"
+        android:pathData="M22,44 L86,44 L86,49 L22,49 Z" />
+    <!-- Clasp / card slot -->
+    <path
+        android:fillColor="#6750A4"
+        android:pathData="M68,52 C71.87,52 75,55.13 75,59 C75,62.87 71.87,66 68,66 C64.13,66 61,62.87 61,59 C61,55.13 64.13,52 68,52 Z" />
+</vector>

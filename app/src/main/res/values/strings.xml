@@ -1,0 +1,74 @@
+<resources>
+    <string name="app_name" translatable="false">Tracky</string>
+
+    <string name="auth_welcome_back">Welcome back</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_add_transaction">Add transaction</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_back">Back</string>
+    <string name="action_save">Save</string>
+    <string name="action_add">Add</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
+
+    <string name="label_income">Income</string>
+    <string name="label_expense">Expense</string>
+    <string name="label_balance">Balance</string>
+    <string name="label_net_balance">Net Balance</string>
+    <string name="label_amount">Amount</string>
+    <string name="label_category_id">Category</string>
+    <string name="label_note_optional">Note (optional)</string>
+    <string name="label_category_name">Category name</string>
+    <string name="label_select_color">Select color</string>
+    <string name="label_select_icon">Select icon</string>
+
+    <string name="add_transaction_title">Add Transaction</string>
+    <string name="add_income_title">Add Income</string>
+    <string name="add_expense_title">Add Expense</string>
+
+    <string name="categories_title">Categories</string>
+    <string name="action_add_category">Add category</string>
+    <string name="section_expenses">Expenses</string>
+    <string name="section_income">Income</string>
+    <string name="new_category_title">New category</string>
+    <string name="dialog_choose_color">Choose color</string>
+    <string name="dialog_choose_icon">Choose icon</string>
+
+    <string name="category_group_food">Food</string>
+    <string name="category_group_general">General</string>
+    <string name="category_group_home">Home</string>
+    <string name="category_group_lifestyle">Lifestyle</string>
+    <string name="category_group_money">Money</string>
+    <string name="category_group_shopping">Shopping</string>
+    <string name="category_group_transport">Transport</string>
+
+    <string name="accent_selected_desc">Selected</string>
+    <string name="settings_accent_color">Accent color</string>
+    <string name="settings_categories">Categories</string>
+    <string name="settings_currency">Currency</string>
+    <string name="settings_join_space">Join a Space</string>
+    <string name="settings_logout">Log out</string>
+    <string name="settings_logout_confirm_title">Log out?</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_section_preferences">Preferences</string>
+    <string name="settings_section_space">Shared Space</string>
+    <string name="settings_share_space">Invite to Space</string>
+    <string name="settings_space_qr_title">Invite QR Code</string>
+    <string name="settings_title">Settings</string>
+
+    <string name="action_edit">Edit</string>
+    <string name="edit_category_title">Edit category</string>
+    <string name="delete_category_title">Delete category?</string>
+    <string name="delete_category_message">Are you sure you want to delete "%1$s"? This action cannot be undone.</string>
+
+    <string name="auth_sign_in_google">Sign in with Google</string>
+    <string name="auth_error_google_sign_in_failed">Google sign-in failed. Please try again.</string>
+
+    <string name="settings_space_name">Space name</string>
+    <string name="settings_switch_space">Switch Space</string>
+    <string name="settings_unnamed_space">Unnamed space</string>
+    <string name="settings_personal_space">Personal</string>
+    <string name="settings_member_count">%1$d members</string>
+</resources>
