@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -36,6 +37,7 @@ import com.crisdema.tracky.ui.screens.categories.components.AddCategoryDialog
 import com.crisdema.tracky.ui.screens.categories.components.CategoryCard
 import com.crisdema.tracky.ui.screens.categories.components.DeleteCategoryDialog
 import com.crisdema.tracky.ui.screens.categories.components.EditCategoryDialog
+import com.crisdema.tracky.ui.screens.categories.components.ReorderCategoriesDialog
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,6 +50,7 @@ fun CategoriesScreen(
     val categories = uiState.categories
 
     var showAddDialog by remember { mutableStateOf(false) }
+    var showReorderDialog by remember { mutableStateOf(false) }
     var categoryToEdit by remember { mutableStateOf<Category?>(null) }
     var categoryToDelete by remember { mutableStateOf<Category?>(null) }
 
@@ -60,6 +63,14 @@ fun CategoriesScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.action_back)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showReorderDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.SwapVert,
+                            contentDescription = stringResource(R.string.action_reorder_categories)
                         )
                     }
                 }
@@ -131,6 +142,18 @@ fun CategoriesScreen(
                 viewModel.addCategory(newCategory)
                 showAddDialog = false
             }
+        )
+    }
+
+    if (showReorderDialog) {
+        val expenseCategories = categories.filter { it.type == TransactionType.EXPENSE }
+        val incomeCategories = categories.filter { it.type == TransactionType.INCOME }
+        ReorderCategoriesDialog(
+            expenseCategories = expenseCategories,
+            incomeCategories = incomeCategories,
+            onReorderExpense = { viewModel.reorderExpenseCategories(it) },
+            onReorderIncome = { viewModel.reorderIncomeCategories(it) },
+            onDismiss = { showReorderDialog = false }
         )
     }
 

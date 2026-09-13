@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -41,8 +44,10 @@ fun CategoryCard(
     currencyFormatter: ((Double) -> String)? = null,
     onClick: () -> Unit = {},
     enableActionsMenu: Boolean = true,
+    isSelected: Boolean = false,
     onEdit: () -> Unit = {},
-    onDelete: () -> Unit = {}
+    onDelete: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -63,7 +68,14 @@ fun CategoryCard(
                         { showMenu = true }
                     } else null
                 ),
-            border = BorderStroke(1.5.dp, categoryColor)
+            colors = CardDefaults.outlinedCardColors(
+                containerColor = if (isSelected) {
+                    categoryColor.copy(alpha = 0.14f)
+                } else {
+                    MaterialTheme.colorScheme.surface
+                }
+            ),
+            border = BorderStroke(if (isSelected) 2.5.dp else 1.5.dp, categoryColor)
         ) {
             Row(
                 modifier = Modifier
@@ -95,6 +107,14 @@ fun CategoryCard(
                             modifier = Modifier.padding(top = 2.dp)
                         )
                     }
+                }
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = categoryColor,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
         }

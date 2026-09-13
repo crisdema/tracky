@@ -1,5 +1,6 @@
 package com.crisdema.tracky.ui.screens.categorytransactions
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,6 +32,7 @@ import java.util.*
 @Composable
 fun CategoryTransactionsScreen(
     onBack: () -> Unit,
+    onEditTransaction: (String) -> Unit,
     viewModel: CategoryTransactionsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -88,6 +90,7 @@ fun CategoryTransactionsScreen(
                         txn = txn,
                         currency = currency,
                         deleteDesc = deleteDesc,
+                        onClick = { onEditTransaction(txn.id) },
                         onDelete = { viewModel.deleteTransaction(txn.id) }
                     )
                 }
@@ -101,10 +104,16 @@ private fun CategoryTransactionRow(
     txn: Transaction,
     currency: NumberFormat,
     deleteDesc: String,
+    onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
     val dateFormat = remember(txn.id) { SimpleDateFormat("MMM d", Locale.getDefault()) }
-    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .clickable(onClick = onClick)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -112,7 +121,6 @@ private fun CategoryTransactionRow(
         ) {
             Column {
                 if (txn.note.isNotBlank()) Text(txn.note, style = MaterialTheme.typography.bodyLarge)
-
                 Text(dateFormat.format(Date(txn.date)), style = MaterialTheme.typography.bodySmall)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {

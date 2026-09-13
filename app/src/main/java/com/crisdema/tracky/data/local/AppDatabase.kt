@@ -10,7 +10,7 @@ import com.crisdema.tracky.data.model.Transaction
 
 @Database(
     entities = [Transaction::class, Category::class, Budget::class, Space::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

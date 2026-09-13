@@ -19,6 +19,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE pendingSync = 1")
     suspend fun getPendingSync(): List<Transaction>
 
+    @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): Transaction?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(transaction: Transaction)
 
@@ -34,10 +37,10 @@ interface TransactionDao {
 
 @Dao
 interface CategoryDao {
-    @Query("SELECT * FROM categories WHERE spaceId = :spaceId")
+    @Query("SELECT * FROM categories WHERE spaceId = :spaceId ORDER BY `order` ASC")
     fun observeForSpace(spaceId: String): Flow<List<Category>>
 
-    @Query("SELECT * FROM categories WHERE spaceId = :spaceId")
+    @Query("SELECT * FROM categories WHERE spaceId = :spaceId ORDER BY `order` ASC")
     suspend fun getCategoriesOnce(spaceId: String): List<Category>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

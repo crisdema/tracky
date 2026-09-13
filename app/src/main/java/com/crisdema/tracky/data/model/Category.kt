@@ -10,5 +10,6 @@ data class Category @JvmOverloads constructor(
     val name: String = "",
     val type: TransactionType = TransactionType.EXPENSE,
     val colorHex: String = "#6750A4",
-    val icon: String = "category"
+    val icon: String = "category",
+    val order: Long = 0L
 )

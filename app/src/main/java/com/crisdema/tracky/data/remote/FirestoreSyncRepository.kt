@@ -35,6 +35,7 @@ class FirestoreSyncRepository @Inject constructor(
     private fun spacesRef() = firestore.collection("spaces")
     private fun transactionsRef(spaceId: String) =
         spacesRef().document(spaceId).collection("transactions")
+
     private fun categoriesRef(spaceId: String) =
         spacesRef().document(spaceId).collection("categories")
 
@@ -47,7 +48,9 @@ class FirestoreSyncRepository @Inject constructor(
         val registration: ListenerRegistration = spacesRef()
             .whereArrayContains("memberIds", uid)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { close(error); return@addSnapshotListener }
+                if (error != null) {
+                    close(error); return@addSnapshotListener
+                }
                 val spaces = snapshot?.documents?.mapNotNull { it.toObject(Space::class.java) }
                 trySend(spaces ?: emptyList())
             }
@@ -57,7 +60,9 @@ class FirestoreSyncRepository @Inject constructor(
     fun observeSpace(spaceId: String): Flow<Space?> = callbackFlow {
         val registration = spacesRef().document(spaceId)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { close(error); return@addSnapshotListener }
+                if (error != null) {
+                    close(error); return@addSnapshotListener
+                }
                 trySend(snapshot?.toObject(Space::class.java))
             }
         awaitClose { registration.remove() }
@@ -70,7 +75,9 @@ class FirestoreSyncRepository @Inject constructor(
     fun observeTransactions(spaceId: String): Flow<List<Transaction>> = callbackFlow {
         val registration = transactionsRef(spaceId)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { close(error); return@addSnapshotListener }
+                if (error != null) {
+                    close(error); return@addSnapshotListener
+                }
                 val txns = snapshot?.documents?.mapNotNull { it.toObject(Transaction::class.java) }
                 trySend(txns ?: emptyList())
             }
@@ -80,7 +87,9 @@ class FirestoreSyncRepository @Inject constructor(
     fun observeCategories(spaceId: String): Flow<List<Category>> = callbackFlow {
         val registration = categoriesRef(spaceId)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) { close(error); return@addSnapshotListener }
+                if (error != null) {
+                    close(error); return@addSnapshotListener
+                }
                 val categories = snapshot?.documents?.mapNotNull { it.toObject(Category::class.java) }
                 trySend(categories ?: emptyList())
             }
@@ -101,6 +110,14 @@ class FirestoreSyncRepository @Inject constructor(
 
     suspend fun deleteCategory(category: Category) {
         deleteCategory(category.spaceId, category.id)
+    }
+
+    suspend fun updateCategoryOrders(spaceId: String, orderedUpdates: List<Pair<String, Long>>) {
+        val batch = firestore.batch()
+        orderedUpdates.forEach { (categoryId, newOrder) ->
+            batch.update(categoriesRef(spaceId).document(categoryId), "order", newOrder)
+        }
+        batch.commit().await()
     }
 
     suspend fun pushTransaction(transaction: Transaction) {

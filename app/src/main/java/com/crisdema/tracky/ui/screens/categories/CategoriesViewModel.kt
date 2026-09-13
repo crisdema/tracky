@@ -59,4 +59,16 @@ class CategoriesViewModel @Inject constructor(
             categoryRepository.deleteCategory(spaceId, categoryId)
         }
     }
+
+    fun reorderExpenseCategories(reordered: List<Category>) {
+        viewModelScope.launch {
+            categoryRepository.reorderCategories(spaceId, reordered)
+        }
+    }
+
+    fun reorderIncomeCategories(reordered: List<Category>) {
+        viewModelScope.launch {
+            categoryRepository.reorderCategories(spaceId, reordered)
+        }
+    }
 }

@@ -13,18 +13,20 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_close">Close</string>
 
-    <string name="label_income">Income</string>
-    <string name="label_expense">Expense</string>
-    <string name="label_balance">Balance</string>
-    <string name="label_net_balance">Net Balance</string>
     <string name="label_amount">Amount</string>
+    <string name="label_balance">Balance</string>
     <string name="label_category_id">Category</string>
-    <string name="label_note_optional">Note (optional)</string>
     <string name="label_category_name">Category name</string>
+    <string name="label_date">Date</string>
+    <string name="label_expense">Expense</string>
+    <string name="label_income">Income</string>
+    <string name="label_net_balance">Net Balance</string>
+    <string name="label_note">Note</string>
     <string name="label_select_color">Select color</string>
     <string name="label_select_icon">Select icon</string>
 
     <string name="add_transaction_title">Add Transaction</string>
+    <string name="edit_transaction_title">Edit Transaction</string>
     <string name="add_income_title">Add Income</string>
     <string name="add_expense_title">Add Expense</string>
 
@@ -43,6 +45,10 @@
     <string name="category_group_money">Money</string>
     <string name="category_group_shopping">Shopping</string>
     <string name="category_group_transport">Transport</string>
+
+    <string name="action_reorder_categories">Reorder categories</string>
+    <string name="action_move_up">Move up</string>
+    <string name="action_move_down">Move down</string>
 
     <string name="accent_selected_desc">Selected</string>
     <string name="settings_accent_color">Accent color</string>

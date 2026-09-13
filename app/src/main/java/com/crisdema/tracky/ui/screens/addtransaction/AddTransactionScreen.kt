@@ -1,30 +1,28 @@
 package com.crisdema.tracky.ui.screens.addtransaction
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.crisdema.tracky.R
+import com.crisdema.tracky.data.model.Category
 import com.crisdema.tracky.data.model.TransactionType
+import com.crisdema.tracky.ui.screens.categories.components.CategoryCard
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,21 +33,83 @@ fun AddTransactionScreen(
 ) {
     val type = viewModel.initialType
     val categories by viewModel.categories.collectAsState()
+    val existingTransaction by viewModel.existingTransaction.collectAsState()
+    val isEditMode = viewModel.isEditMode
 
     var amountText by remember { mutableStateOf("") }
     var selectedCategoryId by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
     var note by remember { mutableStateOf("") }
+    var selectedDateMillis by remember { mutableStateOf(System.currentTimeMillis()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var prefilled by remember { mutableStateOf(false) }
 
-    if (selectedCategoryId.isBlank() && categories.isNotEmpty()) {
+    LaunchedEffect(existingTransaction) {
+        val txn = existingTransaction ?: return@LaunchedEffect
+        amountText = txn.amount.toString()
+        selectedCategoryId = txn.categoryId
+        note = txn.note
+        selectedDateMillis = txn.date
+        prefilled = true
+    }
+
+    if (!isEditMode && selectedCategoryId.isBlank() && categories.isNotEmpty()) {
         selectedCategoryId = categories.first().id
     }
 
-    val selectedCategoryName = categories.find { it.id == selectedCategoryId }?.name ?: ""
     val titleRes = if (type == TransactionType.INCOME) R.string.add_income_title else R.string.add_expense_title
+    val screenTitle = if (isEditMode) stringResource(R.string.edit_transaction_title) else stringResource(titleRes)
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(titleRes)) }) }) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
+    val dateFormatter = remember { DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault()) }
+    val dateLabel = remember(selectedDateMillis) {
+        Instant.ofEpochMilli(selectedDateMillis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+            .format(dateFormatter)
+    }
+
+    Scaffold(topBar = { TopAppBar(title = { Text(screenTitle) }) }) { padding ->
+        if (isEditMode && !prefilled) {
+            Box(
+                modifier = Modifier.padding(padding).fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+            return@Scaffold
+        }
+
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDatePicker = true }
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = stringResource(R.string.label_date),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = dateLabel,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
 
             OutlinedTextField(
                 value = amountText,
@@ -59,41 +119,24 @@ fun AddTransactionScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-            ) {
-                OutlinedTextField(
-                    value = selectedCategoryName,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(R.string.label_category_id)) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    categories.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category.name) },
-                            onClick = {
-                                selectedCategoryId = category.id
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
-                label = { Text(stringResource(R.string.label_note_optional)) },
+                label = { Text(stringResource(R.string.label_note)) },
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+            )
+
+            Text(
+                text = stringResource(R.string.label_category_id),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 20.dp, bottom = 8.dp)
+            )
+
+            CategoryGrid(
+                categories = categories,
+                selectedCategoryId = selectedCategoryId,
+                onCategorySelected = { selectedCategoryId = it }
             )
 
             Button(
@@ -102,16 +145,83 @@ fun AddTransactionScreen(
                     if (selectedCategoryId.isBlank()) return@Button
                     viewModel.save(
                         amount = amount,
-                        type = type,
+                        type = existingTransaction?.type ?: type,
                         categoryId = selectedCategoryId,
                         note = note,
-                        date = System.currentTimeMillis(),
+                        date = selectedDateMillis,
                         onSaved = onDone
                     )
                 },
                 modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
             ) {
                 Text(stringResource(R.string.action_save))
+            }
+        }
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = run {
+                val localDate = Instant.ofEpochMilli(selectedDateMillis)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                localDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+            }
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { utcMillis ->
+                        val pickedLocalDate = Instant.ofEpochMilli(utcMillis)
+                            .atZone(ZoneOffset.UTC)
+                            .toLocalDate()
+                        selectedDateMillis = pickedLocalDate
+                            .atStartOfDay(ZoneId.systemDefault())
+                            .toInstant()
+                            .toEpochMilli()
+                    }
+                    showDatePicker = false
+                }) {
+                    Text(stringResource(R.string.action_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+}
+
+@Composable
+private fun CategoryGrid(
+    categories: List<Category>,
+    selectedCategoryId: String,
+    onCategorySelected: (String) -> Unit
+) {
+    Column {
+        categories.chunked(2).forEach { rowCategories ->
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                rowCategories.forEach { category ->
+                    Column(modifier = Modifier.weight(1f)) {
+                        CategoryCard(
+                            category = category,
+                            onClick = { onCategorySelected(category.id) },
+                            enableActionsMenu = false,
+                            isSelected = category.id == selectedCategoryId
+                        )
+                    }
+                }
+                if (rowCategories.size == 1) {
+                    Column(modifier = Modifier.weight(1f)) {}
+                }
             }
         }
     }

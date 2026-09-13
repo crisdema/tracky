@@ -19,7 +19,6 @@ class CategoryRepository @Inject constructor(
     fun observeCategories(spaceId: String): Flow<List<Category>> =
         dao.observeForSpace(spaceId)
 
-    /** Call once per space when it's opened, to start mirroring remote categories locally. */
     fun startRemoteSync(spaceId: String) {
         appScope.launch(Dispatchers.IO) {
             remote.observeCategories(spaceId).collect { remoteCategories ->
@@ -44,6 +43,14 @@ class CategoryRepository @Inject constructor(
         dao.delete(id)
         appScope.launch(Dispatchers.IO) {
             runCatching { remote.deleteCategory(spaceId, id) }
+        }
+    }
+
+    suspend fun reorderCategories(spaceId: String, reordered: List<Category>) {
+        val updates = reordered.mapIndexed { index, category -> category.id to index.toLong() }
+        dao.upsertAll(reordered.mapIndexed { index, category -> category.copy(order = index.toLong()) })
+        appScope.launch(Dispatchers.IO) {
+            runCatching { remote.updateCategoryOrders(spaceId, updates) }
         }
     }
 }

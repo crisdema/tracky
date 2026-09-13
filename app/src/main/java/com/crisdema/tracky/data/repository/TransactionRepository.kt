@@ -34,6 +34,8 @@ class TransactionRepository @Inject constructor(
         }
     }
 
+    suspend fun getTransactionOnce(id: String): Transaction? = dao.getById(id)
+
     suspend fun addTransaction(transaction: Transaction) {
         dao.upsert(transaction.copy(pendingSync = true))
         pushIfPossible(transaction)
