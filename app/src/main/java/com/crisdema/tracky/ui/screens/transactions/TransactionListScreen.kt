@@ -1,15 +1,20 @@
 package com.crisdema.tracky.ui.screens.transactions
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -18,6 +23,8 @@ import com.crisdema.tracky.R
 import com.crisdema.tracky.data.model.Category
 import com.crisdema.tracky.data.model.TransactionType
 import com.crisdema.tracky.ui.screens.categories.components.CategoryCard
+import com.crisdema.tracky.ui.theme.TrackyExpense
+import com.crisdema.tracky.ui.theme.TrackyIncome
 import java.text.NumberFormat
 import java.time.Month
 import java.time.YearMonth
@@ -186,27 +193,27 @@ private fun AddButtonsRow(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Button(
+        IconButton(
             onClick = onAddIncome,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = androidx.compose.ui.graphics.Color(0xFF3FAE7D),
-                contentColor = androidx.compose.ui.graphics.Color.White
-            ),
-            modifier = Modifier.weight(1f).height(56.dp)
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(TrackyIncome.copy(alpha = 0.12f))
+                .border(1.dp, TrackyIncome, RoundedCornerShape(24.dp))
         ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Text(incomeLabel, modifier = Modifier.padding(start = 8.dp))
+            Icon(Icons.Default.Add, contentDescription = incomeLabel, tint = TrackyIncome)
         }
-        Button(
+        IconButton(
             onClick = onAddExpense,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = androidx.compose.ui.graphics.Color.White
-            ),
-            modifier = Modifier.weight(1f).height(56.dp)
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(TrackyExpense.copy(alpha = 0.12f))
+                .border(1.dp, TrackyExpense, RoundedCornerShape(24.dp))
         ) {
-            Icon(Icons.Default.Remove, contentDescription = null)
-            Text(expenseLabel, modifier = Modifier.padding(start = 8.dp))
+            Icon(Icons.Default.Remove, contentDescription = expenseLabel, tint = TrackyExpense)
         }
     }
 }
@@ -267,7 +274,11 @@ private fun SummaryCard(
                 color = androidx.compose.ui.graphics.Color.White
             )
 
-            Divider(modifier = Modifier.padding(vertical = 16.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 16.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -276,17 +287,17 @@ private fun SummaryCard(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(incomeLabel, style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        "+$income",
+                        income,
                         style = MaterialTheme.typography.headlineMedium,
-                        color = androidx.compose.ui.graphics.Color(0xFF3FAE7D)
+                        color = TrackyIncome
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(expenseLabel, style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        "-$expense",
+                        expense,
                         style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.error
+                        color = TrackyExpense
                     )
                 }
             }

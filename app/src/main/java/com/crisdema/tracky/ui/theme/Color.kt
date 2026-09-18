@@ -12,3 +12,6 @@ val TrackySurfaceVariant = Color(0xFF2A2733)
 val TrackyOnSurface = Color(0xFFEAE6F0)
 val TrackyOnSurfaceVariant = Color(0xFFB8B2C4)
 val TrackyError = Color(0xFFE57373)
+
+val TrackyIncome = Color(0xFF5FAC8A)
+val TrackyExpense = Color(0xFFE09797)
