@@ -1,11 +1,15 @@
 package com.crisdema.tracky.ui.screens.categorytransactions
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -24,8 +28,13 @@ import com.crisdema.tracky.R
 import com.crisdema.tracky.data.model.Transaction
 import com.crisdema.tracky.data.model.TransactionType
 import com.crisdema.tracky.ui.screens.categories.ALL_ICONS_FLAT
+import com.crisdema.tracky.ui.theme.TrackyOnSurface
+import com.crisdema.tracky.ui.theme.TrackyOnSurfaceVariant
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +42,7 @@ import java.util.*
 fun CategoryTransactionsScreen(
     onBack: () -> Unit,
     onEditTransaction: (String) -> Unit,
+    onAddTransaction: (TransactionType) -> Unit,
     viewModel: CategoryTransactionsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -42,13 +52,26 @@ fun CategoryTransactionsScreen(
         }
     }
     val deleteDesc = stringResource(R.string.action_delete)
+    val addDesc = stringResource(R.string.action_add)
 
     val categoryColor = remember(state.category?.colorHex) {
         state.category?.colorHex
             ?.let { runCatching { Color(it.toColorInt()) }.getOrNull() }
-            ?: Color.Gray
+            ?: TrackyOnSurfaceVariant
     }
     val iconResId = ALL_ICONS_FLAT[state.category?.icon] ?: R.drawable.ic_category
+
+    val groupedTransactions = remember(state.transactions) {
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(zone)
+        state.transactions
+            .sortedByDescending { it.date }
+            .groupBy { txn ->
+                val date = Instant.ofEpochMilli(txn.date).atZone(zone).toLocalDate()
+                val pattern = if (date.year == today.year) "MMM d" else "MMM d, yyyy"
+                SimpleDateFormat(pattern, Locale.getDefault()).format(Date(txn.date))
+            }
+    }
 
     Scaffold(
         topBar = {
@@ -61,38 +84,71 @@ fun CategoryTransactionsScreen(
                             contentDescription = stringResource(R.string.action_back)
                         )
                     }
+                },
+                actions = {
+                    state.category?.let { category ->
+                        IconButton(onClick = { onAddTransaction(category.type) }) {
+                            Icon(Icons.Default.Add, contentDescription = addDesc)
+                        }
+                    }
                 }
             )
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxWidth()) {
-            Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            OutlinedCard(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                colors = CardDefaults.outlinedCardColors(
+                    containerColor = categoryColor.copy(alpha = 0.14f)
+                ),
+                border = BorderStroke(1.5.dp, categoryColor)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(painter = painterResource(id = iconResId), contentDescription = null, tint = categoryColor)
+                        Icon(
+                            painter = painterResource(id = iconResId),
+                            contentDescription = null,
+                            tint = categoryColor,
+                            modifier = Modifier.size(28.dp)
+                        )
                         Text(
                             state.category?.name.orEmpty(),
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(start = 8.dp)
+                            color = TrackyOnSurface,
+                            modifier = Modifier.padding(start = 12.dp)
                         )
                     }
-                    Text(currency.format(state.total), style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        currency.format(state.total),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = TrackyOnSurface
+                    )
                 }
             }
 
             LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                items(state.transactions, key = { it.id }) { txn ->
-                    CategoryTransactionRow(
-                        txn = txn,
-                        currency = currency,
-                        deleteDesc = deleteDesc,
-                        onClick = { onEditTransaction(txn.id) },
-                        onDelete = { viewModel.deleteTransaction(txn.id) }
-                    )
+                groupedTransactions.forEach { (dateLabel, txns) ->
+                    item(key = "header_$dateLabel") {
+                        Text(
+                            dateLabel,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 4.dp)
+                        )
+                    }
+                    items(txns, key = { it.id }) { txn ->
+                        CategoryTransactionRow(
+                            txn = txn,
+                            currency = currency,
+                            deleteDesc = deleteDesc,
+                            onClick = { onEditTransaction(txn.id) },
+                            onDelete = { viewModel.deleteTransaction(txn.id) }
+                        )
+                    }
                 }
             }
         }
@@ -107,7 +163,6 @@ private fun CategoryTransactionRow(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val dateFormat = remember(txn.id) { SimpleDateFormat("MMM d", Locale.getDefault()) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -121,7 +176,6 @@ private fun CategoryTransactionRow(
         ) {
             Column {
                 if (txn.note.isNotBlank()) Text(txn.note, style = MaterialTheme.typography.bodyLarge)
-                Text(dateFormat.format(Date(txn.date)), style = MaterialTheme.typography.bodySmall)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val sign = if (txn.type == TransactionType.EXPENSE) "-" else "+"

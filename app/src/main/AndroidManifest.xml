@@ -12,7 +12,7 @@
         android:icon="@mipmap/tracky"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Tracky">
+        android:theme="@style/Theme.Tracky.Splash">
 
         <activity
             android:name=".MainActivity"

@@ -2,9 +2,11 @@ package com.crisdema.tracky.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.crisdema.tracky.ui.screens.addtransaction.AddTransactionScreen
 import com.crisdema.tracky.ui.screens.auth.AuthScreen
 import com.crisdema.tracky.ui.screens.categories.CategoriesScreen
@@ -16,7 +18,7 @@ import com.crisdema.tracky.ui.screens.transactions.TransactionListScreen
 object Routes {
     const val AUTH = "auth"
     const val HOME = "home/{spaceId}"
-    const val ADD_TRANSACTION = "add_transaction/{spaceId}/{type}"
+    const val ADD_TRANSACTION = "add_transaction/{spaceId}/{type}?categoryId={categoryId}"
     const val EDIT_TRANSACTION = "edit_transaction/{spaceId}/{transactionId}"
     const val SETTINGS = "settings/{spaceId}"
     const val CATEGORIES = "categories/{spaceId}"
@@ -24,17 +26,25 @@ object Routes {
     const val SPACE_SWITCHER = "space_switcher/{spaceId}"
 
     fun home(spaceId: String) = "home/$spaceId"
-    fun addTransaction(spaceId: String, type: String) = "add_transaction/$spaceId/$type"
+    fun addTransaction(spaceId: String, type: String, categoryId: String? = null): String {
+        val base = "add_transaction/$spaceId/$type"
+        return if (categoryId != null) "$base?categoryId=$categoryId" else base
+    }
     fun editTransaction(spaceId: String, transactionId: String) = "edit_transaction/$spaceId/$transactionId"
     fun settings(spaceId: String) = "settings/$spaceId"
     fun categories(spaceId: String) = "categories/$spaceId"
-    fun categoryTransactions(spaceId: String, categoryId: String, yearMonth: String) = "category_transactions/$spaceId/$categoryId/$yearMonth"
+    fun categoryTransactions(spaceId: String, categoryId: String, yearMonth: String) =
+        "category_transactions/$spaceId/$categoryId/$yearMonth"
+
     fun spaceSwitcher(spaceId: String) = "space_switcher/$spaceId"
 }
 
 @Composable
-fun TrackyNavHost(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Routes.AUTH) {
+fun TrackyNavHost(
+    startDestination: String = Routes.AUTH,
+    navController: NavHostController = rememberNavController()
+) {
+    NavHost(navController = navController, startDestination = startDestination) {
 
         composable(Routes.AUTH) {
             AuthScreen(
@@ -58,7 +68,16 @@ fun TrackyNavHost(navController: NavHostController = rememberNavController()) {
             )
         }
 
-        composable(Routes.ADD_TRANSACTION) { backStackEntry ->
+        composable(
+            route = Routes.ADD_TRANSACTION,
+            arguments = listOf(
+                navArgument("categoryId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
             val spaceId = backStackEntry.arguments?.getString("spaceId") ?: return@composable
             AddTransactionScreen(
                 spaceId = spaceId,
@@ -110,10 +129,14 @@ fun TrackyNavHost(navController: NavHostController = rememberNavController()) {
 
         composable(Routes.CATEGORY_TRANSACTIONS) { backStackEntry ->
             val spaceId = backStackEntry.arguments?.getString("spaceId") ?: return@composable
+            val categoryId = backStackEntry.arguments?.getString("categoryId") ?: return@composable
             CategoryTransactionsScreen(
                 onBack = { navController.popBackStack() },
                 onEditTransaction = { transactionId ->
                     navController.navigate(Routes.editTransaction(spaceId, transactionId))
+                },
+                onAddTransaction = { type ->
+                    navController.navigate(Routes.addTransaction(spaceId, type.name, categoryId))
                 }
             )
         }

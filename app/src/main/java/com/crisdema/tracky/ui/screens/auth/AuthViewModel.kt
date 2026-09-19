@@ -6,8 +6,6 @@ import com.crisdema.tracky.data.repository.SpaceRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -16,7 +14,6 @@ import javax.inject.Inject
 
 data class AuthUiState(
     val isLoading: Boolean = false,
-    val isCheckingSession: Boolean = true,
     val error: String? = null,
     val spaceId: String? = null
 )
@@ -30,19 +27,8 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState
 
-    private var loggedOutConfirmationJob: Job? = null
-
     private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-        val uid = firebaseAuth.currentUser?.uid
-        loggedOutConfirmationJob?.cancel()
-        if (uid != null) {
-            resolveSpace(uid)
-        } else {
-            loggedOutConfirmationJob = viewModelScope.launch {
-                delay(3000)
-                _uiState.value = _uiState.value.copy(isCheckingSession = false)
-            }
-        }
+        firebaseAuth.currentUser?.uid?.let { resolveSpace(it) }
     }
 
     init {
@@ -72,11 +58,7 @@ class AuthViewModel @Inject constructor(
     private fun resolveSpace(uid: String) {
         viewModelScope.launch {
             val space = spaceRepository.getOrCreateDefaultSpace(uid)
-            _uiState.value = _uiState.value.copy(
-                isLoading = false,
-                isCheckingSession = false,
-                spaceId = space.id
-            )
+            _uiState.value = _uiState.value.copy(isLoading = false, spaceId = space.id)
         }
     }
 }

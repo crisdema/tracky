@@ -35,6 +35,8 @@ class AddTransactionViewModel @Inject constructor(
         ?.let { runCatching { TransactionType.valueOf(it) }.getOrNull() }
         ?: TransactionType.EXPENSE
 
+    val prefilledCategoryId: String? = savedStateHandle.get<String>("categoryId")
+
     private val _existingTransaction = MutableStateFlow<Transaction?>(null)
     val existingTransaction: StateFlow<Transaction?> = _existingTransaction
 

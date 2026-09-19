@@ -53,7 +53,9 @@ fun AddTransactionScreen(
     }
 
     if (!isEditMode && selectedCategoryId.isBlank() && categories.isNotEmpty()) {
-        selectedCategoryId = categories.first().id
+        selectedCategoryId = viewModel.prefilledCategoryId
+            ?.takeIf { id -> categories.any { it.id == id } }
+            ?: categories.first().id
     }
 
     val titleRes = if (type == TransactionType.INCOME) R.string.add_income_title else R.string.add_expense_title
