@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,7 +68,7 @@ fun CategoryCard(
     LaunchedEffect(isHighlighted) {
         if (isHighlighted) {
             pulse.animateTo(1f, animationSpec = tween(750))
-            pulse.animateTo(0f, animationSpec = tween(750))
+            pulse.animateTo(0f, animationSpec = tween(500))
             onHighlightFinished()
         }
     }
@@ -77,6 +78,11 @@ fun CategoryCard(
 
     val baseContainerAlpha = if (isSelected) 0.14f else 0f
     val containerAlpha = baseContainerAlpha + (0.32f - baseContainerAlpha) * pulse.value
+
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val containerColor = remember(surfaceColor, categoryColor, containerAlpha) {
+        lerp(surfaceColor, categoryColor, containerAlpha)
+    }
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedCard(
@@ -89,11 +95,7 @@ fun CategoryCard(
                     } else null
                 ),
             colors = CardDefaults.outlinedCardColors(
-                containerColor = if (containerAlpha > 0f) {
-                    categoryColor.copy(alpha = containerAlpha)
-                } else {
-                    MaterialTheme.colorScheme.surface
-                }
+                containerColor = containerColor
             ),
             border = BorderStroke(borderWidth.dp, categoryColor)
         ) {

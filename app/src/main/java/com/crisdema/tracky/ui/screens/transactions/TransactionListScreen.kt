@@ -25,6 +25,7 @@ import com.crisdema.tracky.data.model.TransactionType
 import com.crisdema.tracky.ui.screens.categories.components.CategoryCard
 import com.crisdema.tracky.ui.theme.TrackyExpense
 import com.crisdema.tracky.ui.theme.TrackyIncome
+import com.crisdema.tracky.ui.theme.TrackyOnSurface
 import java.text.NumberFormat
 import java.time.Month
 import java.time.YearMonth
@@ -281,7 +282,7 @@ private fun SummaryCard(
             Text(
                 balance,
                 style = MaterialTheme.typography.headlineLarge,
-                color = androidx.compose.ui.graphics.Color.White
+                color = TrackyOnSurface
             )
 
             HorizontalDivider(
