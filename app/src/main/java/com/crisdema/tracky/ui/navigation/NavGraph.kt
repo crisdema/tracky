@@ -1,6 +1,8 @@
 package com.crisdema.tracky.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -58,8 +60,14 @@ fun TrackyNavHost(
 
         composable(Routes.HOME) { backStackEntry ->
             val spaceId = backStackEntry.arguments?.getString("spaceId") ?: return@composable
+            val highlightedCategoryId by backStackEntry.savedStateHandle
+                .getStateFlow<String?>("justAddedCategoryId", null)
+                .collectAsState()
+
             TransactionListScreen(
                 spaceId = spaceId,
+                highlightedCategoryId = highlightedCategoryId,
+                onHighlightConsumed = { backStackEntry.savedStateHandle["justAddedCategoryId"] = null },
                 onAddTransaction = { type -> navController.navigate(Routes.addTransaction(spaceId, type.name)) },
                 onOpenSettings = { navController.navigate(Routes.settings(spaceId)) },
                 onOpenCategory = { categoryId, month ->
@@ -81,7 +89,12 @@ fun TrackyNavHost(
             val spaceId = backStackEntry.arguments?.getString("spaceId") ?: return@composable
             AddTransactionScreen(
                 spaceId = spaceId,
-                onDone = { navController.popBackStack() }
+                onDone = { categoryId ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("justAddedCategoryId", categoryId)
+                    navController.popBackStack()
+                }
             )
         }
 
@@ -123,7 +136,12 @@ fun TrackyNavHost(
             val spaceId = backStackEntry.arguments?.getString("spaceId") ?: return@composable
             AddTransactionScreen(
                 spaceId = spaceId,
-                onDone = { navController.popBackStack() }
+                onDone = { categoryId ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("justAddedCategoryId", categoryId)
+                    navController.popBackStack()
+                }
             )
         }
 

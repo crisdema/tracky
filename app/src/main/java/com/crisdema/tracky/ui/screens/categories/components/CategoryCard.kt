@@ -1,5 +1,7 @@
 package com.crisdema.tracky.ui.screens.categories.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -20,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +48,8 @@ fun CategoryCard(
     onClick: () -> Unit = {},
     enableActionsMenu: Boolean = true,
     isSelected: Boolean = false,
+    isHighlighted: Boolean = false,
+    onHighlightFinished: () -> Unit = {},
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {},
     onLongClick: (() -> Unit)? = null
@@ -58,6 +63,21 @@ fun CategoryCard(
     }
     val iconResId = ALL_ICONS_FLAT[category.icon] ?: R.drawable.ic_category
 
+    val pulse = remember { Animatable(0f) }
+    LaunchedEffect(isHighlighted) {
+        if (isHighlighted) {
+            pulse.animateTo(1f, animationSpec = tween(750))
+            pulse.animateTo(0f, animationSpec = tween(750))
+            onHighlightFinished()
+        }
+    }
+
+    val baseBorderWidth = if (isSelected) 2.5f else 1.5f
+    val borderWidth = baseBorderWidth + (3.5f - baseBorderWidth) * pulse.value
+
+    val baseContainerAlpha = if (isSelected) 0.14f else 0f
+    val containerAlpha = baseContainerAlpha + (0.32f - baseContainerAlpha) * pulse.value
+
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedCard(
             modifier = Modifier
@@ -69,13 +89,13 @@ fun CategoryCard(
                     } else null
                 ),
             colors = CardDefaults.outlinedCardColors(
-                containerColor = if (isSelected) {
-                    categoryColor.copy(alpha = 0.14f)
+                containerColor = if (containerAlpha > 0f) {
+                    categoryColor.copy(alpha = containerAlpha)
                 } else {
                     MaterialTheme.colorScheme.surface
                 }
             ),
-            border = BorderStroke(if (isSelected) 2.5.dp else 1.5.dp, categoryColor)
+            border = BorderStroke(borderWidth.dp, categoryColor)
         ) {
             Row(
                 modifier = Modifier

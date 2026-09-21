@@ -23,11 +23,6 @@ data class CurrencyOption(val code: String, val label: String)
 val CurrencyOptions = listOf(
     CurrencyOption("USD", "US Dollar ($)"),
     CurrencyOption("EUR", "Euro (€)"),
-    CurrencyOption("GBP", "British Pound (£)"),
-    CurrencyOption("JPY", "Japanese Yen (¥)"),
-    CurrencyOption("INR", "Indian Rupee (₹)"),
-    CurrencyOption("BRL", "Brazilian Real (R$)"),
-    CurrencyOption("MXN", "Mexican Peso ($)"),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)

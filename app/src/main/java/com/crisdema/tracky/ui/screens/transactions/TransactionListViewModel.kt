@@ -5,19 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.crisdema.tracky.data.model.Category
 import com.crisdema.tracky.data.model.Transaction
+import com.crisdema.tracky.data.model.TransactionType
 import com.crisdema.tracky.data.repository.CategoryRepository
 import com.crisdema.tracky.data.repository.SettingsRepository
 import com.crisdema.tracky.data.repository.SpaceRepository
 import com.crisdema.tracky.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
 import java.time.Instant
 import java.time.YearMonth
 import java.time.ZoneId
@@ -74,10 +69,10 @@ class TransactionListViewModel @Inject constructor(
                 }
 
                 val income = monthTransactions
-                    .filter { it.type.name == "INCOME" }
+                    .filter { it.type == TransactionType.INCOME }
                     .sumOf { it.amount }
                 val expense = monthTransactions
-                    .filter { it.type.name == "EXPENSE" }
+                    .filter { it.type == TransactionType.EXPENSE }
                     .sumOf { it.amount }
 
                 val categoryTotals = monthTransactions
@@ -97,7 +92,7 @@ class TransactionListViewModel @Inject constructor(
             }
         }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = TransactionListUiState()
         )
 
@@ -113,9 +108,4 @@ class TransactionListViewModel @Inject constructor(
         _selectedMonth.value = month
     }
 
-    fun deleteTransaction(transactionId: String) {
-        viewModelScope.launch {
-            transactionRepository.deleteTransaction(spaceId, transactionId)
-        }
-    }
 }

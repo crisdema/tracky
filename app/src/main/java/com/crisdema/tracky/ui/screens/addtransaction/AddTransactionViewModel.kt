@@ -70,7 +70,7 @@ class AddTransactionViewModel @Inject constructor(
         categoryId: String,
         note: String,
         date: Long,
-        onSaved: () -> Unit
+        onSaved: (String) -> Unit
     ) {
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
@@ -87,7 +87,7 @@ class AddTransactionViewModel @Inject constructor(
                     createdBy = existing?.createdBy ?: uid
                 )
             )
-            onSaved()
+            onSaved(categoryId)
         }
     }
 }

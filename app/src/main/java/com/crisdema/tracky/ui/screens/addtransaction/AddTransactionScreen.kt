@@ -28,7 +28,7 @@ import java.util.*
 @Composable
 fun AddTransactionScreen(
     spaceId: String,
-    onDone: () -> Unit,
+    onDone: (categoryId: String) -> Unit,
     viewModel: AddTransactionViewModel = hiltViewModel()
 ) {
     val type = viewModel.initialType

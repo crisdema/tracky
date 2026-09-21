@@ -36,6 +36,8 @@ import java.util.*
 @Composable
 fun TransactionListScreen(
     spaceId: String,
+    highlightedCategoryId: String? = null,
+    onHighlightConsumed: () -> Unit = {},
     onAddTransaction: (TransactionType) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenCategory: (categoryId: String, month: YearMonth) -> Unit,
@@ -114,7 +116,9 @@ fun TransactionListScreen(
                 categories = expenseCategories,
                 categoryTotals = state.categoryTotals,
                 currencyFormatter = { currency.format(it) },
-                onCategoryClick = { categoryId -> onOpenCategory(categoryId, state.selectedMonth) }
+                onCategoryClick = { categoryId -> onOpenCategory(categoryId, state.selectedMonth) },
+                highlightedCategoryId = highlightedCategoryId,
+                onHighlightConsumed = onHighlightConsumed,
             )
 
             CategoryGridSection(
@@ -122,7 +126,9 @@ fun TransactionListScreen(
                 categories = incomeCategories,
                 categoryTotals = state.categoryTotals,
                 currencyFormatter = { currency.format(it) },
-                onCategoryClick = { categoryId -> onOpenCategory(categoryId, state.selectedMonth) }
+                onCategoryClick = { categoryId -> onOpenCategory(categoryId, state.selectedMonth) },
+                highlightedCategoryId = highlightedCategoryId,
+                onHighlightConsumed = onHighlightConsumed,
             )
         }
     }
@@ -145,7 +151,9 @@ private fun CategoryGridSection(
     categories: List<Category>,
     categoryTotals: Map<String, Double>,
     currencyFormatter: (Double) -> String,
-    onCategoryClick: (String) -> Unit
+    onCategoryClick: (String) -> Unit,
+    highlightedCategoryId: String? = null,
+    onHighlightConsumed: () -> Unit = {},
 ) {
     if (categories.isEmpty()) return
 
@@ -170,7 +178,9 @@ private fun CategoryGridSection(
                             totalAmount = total,
                             currencyFormatter = currencyFormatter,
                             onClick = { onCategoryClick(category.id) },
-                            enableActionsMenu = false
+                            enableActionsMenu = false,
+                            isHighlighted = category.id == highlightedCategoryId,
+                            onHighlightFinished = onHighlightConsumed,
                         )
                     }
                 }
