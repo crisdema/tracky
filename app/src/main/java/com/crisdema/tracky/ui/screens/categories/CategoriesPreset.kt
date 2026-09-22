@@ -29,7 +29,7 @@ val ICON_CATEGORIES: Map<Int, Map<String, Int>> = mapOf(
         "fitness_center" to R.drawable.ic_fitness_center,
         "sports_esports" to R.drawable.ic_sports_esports,
         "directions_car" to R.drawable.ic_directions_car,
-        "flight" to R.drawable.ic_flight,
+        "travel" to R.drawable.ic_travel,
     ),
     R.string.category_group_food to mapOf(
         "restaurant" to R.drawable.ic_restaurant,
@@ -42,7 +42,7 @@ val ICON_CATEGORIES: Map<Int, Map<String, Int>> = mapOf(
         "shopping_cart" to R.drawable.ic_shopping_cart,
         "receipt" to R.drawable.ic_receipt,
         "shopping_bag" to R.drawable.ic_shopping_bag,
-        "storefront" to R.drawable.ic_storefront,
+        "bubble_chart" to R.drawable.ic_bubble_chart,
         "apparel" to R.drawable.ic_apparel,
     ),
     R.string.category_group_money to mapOf(
