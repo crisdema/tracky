@@ -90,10 +90,11 @@ fun TrackyNavHost(
             AddTransactionScreen(
                 spaceId = spaceId,
                 onDone = { categoryId ->
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("justAddedCategoryId", categoryId)
-                    navController.popBackStack()
+                    navController.getBackStackEntry(Routes.HOME).savedStateHandle["justAddedCategoryId"] = categoryId
+                    navController.navigate(Routes.home(spaceId)) {
+                        popUpTo(Routes.HOME) { inclusive = false }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

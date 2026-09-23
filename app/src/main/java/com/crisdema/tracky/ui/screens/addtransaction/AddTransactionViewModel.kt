@@ -90,4 +90,9 @@ class AddTransactionViewModel @Inject constructor(
             onSaved(categoryId)
         }
     }
+
+    suspend fun getFrequentNotes(categoryId: String): List<String> {
+        if (categoryId.isBlank()) return emptyList()
+        return repository.getFrequentNotes(spaceId, categoryId)
+    }
 }

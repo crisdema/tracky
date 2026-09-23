@@ -15,9 +15,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.crisdema.tracky.R
 import com.crisdema.tracky.data.model.Category
@@ -52,11 +55,19 @@ fun TransactionListScreen(
     }
 
     var showMonthPicker by remember { mutableStateOf(false) }
+    var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
 
     val settingsDesc = stringResource(R.string.action_settings)
     val incomeLabel = stringResource(R.string.label_income)
     val expenseLabel = stringResource(R.string.label_expense)
     val balanceLabel = stringResource(R.string.label_balance)
+
+    LaunchedEffect(highlightedCategoryId) {
+        val categoryType = state.categories.firstOrNull { it.id == highlightedCategoryId }?.type
+        if (categoryType != null) {
+            selectedType = categoryType
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -79,6 +90,20 @@ fun TransactionListScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.background,
+                tonalElevation = 0.dp
+            ) {
+                AddButtonsRow(
+                    incomeLabel = incomeLabel,
+                    expenseLabel = expenseLabel,
+                    onAddIncome = { onAddTransaction(TransactionType.INCOME) },
+                    onAddExpense = { onAddTransaction(TransactionType.EXPENSE) }
+                )
+            }
         }
     ) { padding ->
         Column(
@@ -99,37 +124,27 @@ fun TransactionListScreen(
                 balanceLabel = balanceLabel,
                 income = currency.format(state.totalIncome),
                 expense = currency.format(state.totalExpense),
-                balance = currency.format(state.totalIncome - state.totalExpense)
+                balance = currency.format(state.totalIncome - state.totalExpense),
+                totalIncome = state.totalIncome,
+                totalExpense = state.totalExpense
             )
 
-            AddButtonsRow(
-                incomeLabel = incomeLabel,
+            TypeToggle(
+                selectedType = selectedType,
                 expenseLabel = expenseLabel,
-                onAddIncome = { onAddTransaction(TransactionType.INCOME) },
-                onAddExpense = { onAddTransaction(TransactionType.EXPENSE) }
+                incomeLabel = incomeLabel,
+                onTypeSelected = { selectedType = it }
             )
 
-            val expenseCategories = state.categories.filter { it.type == TransactionType.EXPENSE }
-            val incomeCategories = state.categories.filter { it.type == TransactionType.INCOME }
+            val visibleCategories = state.categories.filter { it.type == selectedType }
 
-            CategoryGridSection(
-                title = expenseLabel,
-                categories = expenseCategories,
+            CategoryGrid(
+                categories = visibleCategories,
                 categoryTotals = state.categoryTotals,
                 currencyFormatter = { currency.format(it) },
                 onCategoryClick = { categoryId -> onOpenCategory(categoryId, state.selectedMonth) },
                 highlightedCategoryId = highlightedCategoryId,
-                onHighlightConsumed = onHighlightConsumed,
-            )
-
-            CategoryGridSection(
-                title = incomeLabel,
-                categories = incomeCategories,
-                categoryTotals = state.categoryTotals,
-                currencyFormatter = { currency.format(it) },
-                onCategoryClick = { categoryId -> onOpenCategory(categoryId, state.selectedMonth) },
-                highlightedCategoryId = highlightedCategoryId,
-                onHighlightConsumed = onHighlightConsumed,
+                onHighlightConsumed = onHighlightConsumed
             )
         }
     }
@@ -146,24 +161,55 @@ fun TransactionListScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CategoryGridSection(
-    title: String,
+private fun TypeToggle(
+    selectedType: TransactionType,
+    expenseLabel: String,
+    incomeLabel: String,
+    onTypeSelected: (TransactionType) -> Unit
+) {
+    val transparentColors = SegmentedButtonDefaults.colors(
+        activeContainerColor = Color.Transparent,
+        inactiveContainerColor = Color.Transparent,
+        activeContentColor = MaterialTheme.colorScheme.onSurface,
+        inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        SegmentedButton(
+            selected = selectedType == TransactionType.EXPENSE,
+            onClick = { onTypeSelected(TransactionType.EXPENSE) },
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+            colors = transparentColors,
+            icon = { SegmentedButtonDefaults.Icon(active = selectedType == TransactionType.EXPENSE) }
+        ) {
+            Text(expenseLabel)
+        }
+        SegmentedButton(
+            selected = selectedType == TransactionType.INCOME,
+            onClick = { onTypeSelected(TransactionType.INCOME) },
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            colors = transparentColors,
+            icon = { SegmentedButtonDefaults.Icon(active = selectedType == TransactionType.INCOME) }
+        ) {
+            Text(incomeLabel)
+        }
+    }
+}
+
+@Composable
+private fun CategoryGrid(
     categories: List<Category>,
     categoryTotals: Map<String, Double>,
     currencyFormatter: (Double) -> String,
     onCategoryClick: (String) -> Unit,
     highlightedCategoryId: String? = null,
-    onHighlightConsumed: () -> Unit = {},
+    onHighlightConsumed: () -> Unit = {}
 ) {
     if (categories.isEmpty()) return
-
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-    )
 
     Column(modifier = Modifier.padding(horizontal = 12.dp)) {
         categories.chunked(2).forEach { rowCategories ->
@@ -181,7 +227,8 @@ private fun CategoryGridSection(
                             onClick = { onCategoryClick(category.id) },
                             enableActionsMenu = false,
                             isHighlighted = category.id == highlightedCategoryId,
-                            onHighlightFinished = onHighlightConsumed,
+                            emphasizeColor = false,
+                            onHighlightFinished = onHighlightConsumed
                         )
                     }
                 }
@@ -201,17 +248,19 @@ private fun AddButtonsRow(
     onAddExpense: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 28.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         IconButton(
             onClick = onAddIncome,
             modifier = Modifier
                 .weight(1f)
-                .height(48.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .height(60.dp)
+                .clip(RoundedCornerShape(28.dp))
                 .background(TrackyIncome.copy(alpha = 0.12f))
-                .border(1.dp, TrackyIncome, RoundedCornerShape(24.dp))
+                .border(1.dp, TrackyIncome, RoundedCornerShape(28.dp))
         ) {
             Icon(Icons.Default.Add, contentDescription = incomeLabel, tint = TrackyIncome)
         }
@@ -219,10 +268,10 @@ private fun AddButtonsRow(
             onClick = onAddExpense,
             modifier = Modifier
                 .weight(1f)
-                .height(48.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .height(60.dp)
+                .clip(RoundedCornerShape(28.dp))
                 .background(TrackyExpense.copy(alpha = 0.12f))
-                .border(1.dp, TrackyExpense, RoundedCornerShape(24.dp))
+                .border(1.dp, TrackyExpense, RoundedCornerShape(28.dp))
         ) {
             Icon(Icons.Default.Remove, contentDescription = expenseLabel, tint = TrackyExpense)
         }
@@ -267,47 +316,88 @@ private fun SummaryCard(
     balanceLabel: String,
     income: String,
     expense: String,
-    balance: String
+    balance: String,
+    totalIncome: Double,
+    totalExpense: Double
 ) {
+    val total = totalIncome + totalExpense
+    val incomeFraction = if (total > 0.0) (totalIncome / total).toFloat() else 0.5f
+    val expenseFraction = if (total > 0.0) (totalExpense / total).toFloat() else 0.5f
+
     Card(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
         Column(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.padding(16.dp).fillMaxWidth()
         ) {
             Text(
-                balanceLabel,
-                style = MaterialTheme.typography.bodyMedium,
+                balanceLabel.uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.2.sp
+                ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 balance,
-                style = MaterialTheme.typography.headlineLarge,
-                color = TrackyOnSurface
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 16.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
+                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                color = TrackyOnSurface,
+                modifier = Modifier.padding(top = 2.dp, bottom = 16.dp)
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(incomeLabel, style = MaterialTheme.typography.bodyMedium)
+                if (incomeFraction > 0f) {
+                    Box(
+                        modifier = Modifier
+                            .weight(incomeFraction)
+                            .fillMaxHeight()
+                            .background(TrackyIncome)
+                    )
+                }
+                if (expenseFraction > 0f) {
+                    Box(
+                        modifier = Modifier
+                            .weight(expenseFraction)
+                            .fillMaxHeight()
+                            .background(TrackyExpense)
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                Column {
+                    Text(
+                        incomeLabel.uppercase(),
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Text(
                         income,
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.titleMedium,
                         color = TrackyIncome
                     )
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(expenseLabel, style = MaterialTheme.typography.bodyMedium)
+                Column {
+                    Text(
+                        expenseLabel.uppercase(),
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Text(
                         expense,
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.titleMedium,
                         color = TrackyExpense
                     )
                 }

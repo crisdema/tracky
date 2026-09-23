@@ -42,6 +42,8 @@ fun AddTransactionScreen(
     var selectedDateMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var prefilled by remember { mutableStateOf(false) }
+    var noteSuggestions by remember { mutableStateOf<List<String>>(emptyList()) }
+    var noteFieldExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(existingTransaction) {
         val txn = existingTransaction ?: return@LaunchedEffect
@@ -50,6 +52,18 @@ fun AddTransactionScreen(
         note = txn.note
         selectedDateMillis = txn.date
         prefilled = true
+    }
+
+    LaunchedEffect(selectedCategoryId) {
+        noteSuggestions = viewModel.getFrequentNotes(selectedCategoryId)
+    }
+
+    val filteredNoteSuggestions = remember(note, noteSuggestions) {
+        if (note.isBlank()) {
+            noteSuggestions
+        } else {
+            noteSuggestions.filter { it.contains(note, ignoreCase = true) && it != note }
+        }
     }
 
     if (!isEditMode && selectedCategoryId.isBlank() && categories.isNotEmpty()) {
@@ -121,12 +135,37 @@ fun AddTransactionScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedTextField(
-                value = note,
-                onValueChange = { note = it },
-                label = { Text(stringResource(R.string.label_note)) },
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-            )
+            ExposedDropdownMenuBox(
+                expanded = noteFieldExpanded && filteredNoteSuggestions.isNotEmpty(),
+                onExpandedChange = { noteFieldExpanded = it },
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = {
+                        note = it
+                        noteFieldExpanded = true
+                    },
+                    label = { Text(stringResource(R.string.label_note)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryEditable, enabled = true)
+                )
+                ExposedDropdownMenu(
+                    expanded = noteFieldExpanded && filteredNoteSuggestions.isNotEmpty(),
+                    onDismissRequest = { noteFieldExpanded = false }
+                ) {
+                    filteredNoteSuggestions.forEach { suggestion ->
+                        DropdownMenuItem(
+                            text = { Text(suggestion) },
+                            onClick = {
+                                note = suggestion
+                                noteFieldExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
 
             Text(
                 text = stringResource(R.string.label_category_id),

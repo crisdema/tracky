@@ -48,14 +48,12 @@ class TransactionRepository @Inject constructor(
         }
     }
 
-    /** Retries anything that failed to push earlier (call on app start / network regained). */
-    suspend fun retryPendingSync() {
-        dao.getPendingSync().forEach { pushIfPossible(it) }
-    }
-
     private suspend fun pushIfPossible(transaction: Transaction) {
         runCatching { remote.pushTransaction(transaction) }
             .onSuccess { dao.upsert(transaction.copy(pendingSync = false)) }
         // onFailure: stays pendingSync = true in Room, will retry later
     }
+
+    suspend fun getFrequentNotes(spaceId: String, categoryId: String): List<String> =
+        dao.getFrequentNotes(spaceId, categoryId)
 }

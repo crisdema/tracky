@@ -50,6 +50,7 @@ fun CategoryCard(
     enableActionsMenu: Boolean = true,
     isSelected: Boolean = false,
     isHighlighted: Boolean = false,
+    emphasizeColor: Boolean = true,
     onHighlightFinished: () -> Unit = {},
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {},
@@ -73,10 +74,12 @@ fun CategoryCard(
         }
     }
 
-    val baseBorderWidth = if (isSelected) 2.5f else 1.5f
-    val borderWidth = baseBorderWidth + (3.5f - baseBorderWidth) * pulse.value
+    val strokeWidth = if (isSelected) 2.5f else 1.5f
 
-    val baseContainerAlpha = if (isSelected) 0.14f else 0f
+    val baseBorderAlpha = if (emphasizeColor) 1f else 0f
+    val borderAlpha = baseBorderAlpha + (1f - baseBorderAlpha) * pulse.value
+
+    val baseContainerAlpha = if (emphasizeColor) (if (isSelected) 0.14f else 0f) else 0f
     val containerAlpha = baseContainerAlpha + (0.32f - baseContainerAlpha) * pulse.value
 
     val surfaceColor = MaterialTheme.colorScheme.surface
@@ -97,7 +100,7 @@ fun CategoryCard(
             colors = CardDefaults.outlinedCardColors(
                 containerColor = containerColor
             ),
-            border = BorderStroke(borderWidth.dp, categoryColor)
+            border = BorderStroke(strokeWidth.dp, categoryColor.copy(alpha = borderAlpha))
         ) {
             Row(
                 modifier = Modifier

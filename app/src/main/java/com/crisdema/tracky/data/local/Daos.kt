@@ -33,6 +33,15 @@ interface TransactionDao {
 
     @Query("DELETE FROM transactions WHERE spaceId = :spaceId AND pendingSync = 0 AND id NOT IN (:keepIds)")
     suspend fun deleteMissing(spaceId: String, keepIds: List<String>)
+
+    @Query("""
+        SELECT note FROM transactions
+        WHERE spaceId = :spaceId AND categoryId = :categoryId AND note != ''
+        GROUP BY note
+        ORDER BY COUNT(*) DESC, MAX(date) DESC
+        LIMIT :limit
+    """)
+    suspend fun getFrequentNotes(spaceId: String, categoryId: String, limit: Int = 8): List<String>
 }
 
 @Dao
