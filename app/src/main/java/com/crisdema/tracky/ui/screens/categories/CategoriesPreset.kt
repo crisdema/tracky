@@ -5,7 +5,7 @@ import com.crisdema.tracky.R
 val COLOR_FAMILIES = listOf(
     listOf("#F6CACD", "#E08585", "#E25D55", "#CE4A47", "#B03535", "#9B2626"), // Red
     listOf("#F7DAB2", "#F1B463", "#EA9624", "#E0861A", "#CB6714", "#B74D0E"), // Orange
-    listOf("#F4EDC0", "#ECE19B", "#E2D477", "#D6C75D", "#C5B647", "#B7A03E"), // Yellow
+    listOf("#FDF0A6", "#FCE475", "#F9D43F", "#EFC220", "#D9A812", "#B8890A"), // Yellow
     listOf("#C8E1C6", "#90C58D", "#62AC5E", "#52984E", "#3B7839", "#275A27"), // Green
     listOf("#B4DAD6", "#68B8AF", "#2A9B8E", "#21887C", "#1A6A5F", "#134E43"), // Teal
     listOf("#BAD7EF", "#76B3E4", "#3E95D9", "#3383C7", "#2663A5", "#1B4787"), // Blue
