@@ -12,6 +12,7 @@
     <string name="action_confirm">Confirm</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_close">Close</string>
+    <string name="action_copy">Copy</string>
 
     <string name="label_amount">Amount</string>
     <string name="label_balance">Balance</string>
@@ -61,7 +62,7 @@
     <string name="settings_section_preferences">Preferences</string>
     <string name="settings_section_space">Shared Space</string>
     <string name="settings_share_space">Invite to Space</string>
-    <string name="settings_space_qr_title">Invite QR Code</string>
+    <string name="settings_share_space_title">Share this code to invite someone</string>
     <string name="settings_title">Settings</string>
 
     <string name="action_edit">Edit</string>

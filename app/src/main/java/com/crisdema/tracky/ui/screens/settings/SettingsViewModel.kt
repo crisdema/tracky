@@ -44,6 +44,9 @@ class SettingsViewModel @Inject constructor(
     private val _joinError = MutableStateFlow<String?>(null)
     val joinError: StateFlow<String?> = _joinError.asStateFlow()
 
+    private val _isJoining = MutableStateFlow(false)
+    val isJoining: StateFlow<Boolean> = _isJoining.asStateFlow()
+
     val spaceName: StateFlow<String> = _currentSpaceId
         .flatMapLatest { id ->
             if (id.isBlank()) flowOf("") else spaceRepository.observeSpace(id).map { it?.name.orEmpty() }
@@ -75,7 +78,9 @@ class SettingsViewModel @Inject constructor(
     fun joinSpace(scannedSpaceId: String) {
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
+            _isJoining.value = true
             val result = spaceRepository.joinSpace(scannedSpaceId, uid)
+            _isJoining.value = false
             result.onSuccess {
                 _currentSpaceId.value = scannedSpaceId
                 _joinedSpaceId.value = scannedSpaceId

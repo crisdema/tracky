@@ -13,21 +13,6 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Firestore layout:
- *   spaces/{spaceId}/transactions/{id}
- *   spaces/{spaceId}/categories/{id}
- *   spaces/{spaceId}/budgets/{id}
- *
- * Security rules (Firebase console):
- *   match /spaces/{spaceId} {
- *     allow read, write: if request.auth.uid in resource.data.memberIds;
- *     match /{document=**} {
- *       allow read, write: if request.auth.uid in
- *         get(/databases/$(database)/documents/spaces/$(spaceId)).data.memberIds;
- *     }
- *   }
- */
 @Singleton
 class FirestoreSyncRepository @Inject constructor(
     private val firestore: FirebaseFirestore
