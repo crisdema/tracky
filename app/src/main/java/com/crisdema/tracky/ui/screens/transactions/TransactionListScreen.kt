@@ -180,22 +180,22 @@ private fun TypeToggle(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         SegmentedButton(
-            selected = selectedType == TransactionType.EXPENSE,
-            onClick = { onTypeSelected(TransactionType.EXPENSE) },
-            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-            colors = transparentColors,
-            icon = { SegmentedButtonDefaults.Icon(active = selectedType == TransactionType.EXPENSE) }
-        ) {
-            Text(expenseLabel)
-        }
-        SegmentedButton(
             selected = selectedType == TransactionType.INCOME,
             onClick = { onTypeSelected(TransactionType.INCOME) },
-            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
             colors = transparentColors,
             icon = { SegmentedButtonDefaults.Icon(active = selectedType == TransactionType.INCOME) }
         ) {
             Text(incomeLabel)
+        }
+        SegmentedButton(
+            selected = selectedType == TransactionType.EXPENSE,
+            onClick = { onTypeSelected(TransactionType.EXPENSE) },
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            colors = transparentColors,
+            icon = { SegmentedButtonDefaults.Icon(active = selectedType == TransactionType.EXPENSE) }
+        ) {
+            Text(expenseLabel)
         }
     }
 }
