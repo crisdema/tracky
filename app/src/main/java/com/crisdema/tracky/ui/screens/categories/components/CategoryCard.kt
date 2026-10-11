@@ -5,32 +5,17 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,8 +38,7 @@ fun CategoryCard(
     emphasizeColor: Boolean = true,
     onHighlightFinished: () -> Unit = {},
     onEdit: () -> Unit = {},
-    onDelete: () -> Unit = {},
-    onLongClick: (() -> Unit)? = null
+    onDelete: () -> Unit = {}
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -65,27 +49,25 @@ fun CategoryCard(
     }
     val iconResId = ALL_ICONS_FLAT[category.icon] ?: R.drawable.ic_category
 
+    val haptic = LocalHapticFeedback.current
     val pulse = remember { Animatable(0f) }
     LaunchedEffect(isHighlighted) {
         if (isHighlighted) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             pulse.animateTo(1f, animationSpec = tween(750))
             pulse.animateTo(0f, animationSpec = tween(500))
             onHighlightFinished()
         }
     }
 
-    val strokeWidth = if (isSelected) 2.5f else 1.5f
+    val strokeWidth = if (isSelected) 2.5.dp else 1.5.dp
 
     val baseBorderAlpha = if (emphasizeColor) 1f else 0f
     val borderAlpha = baseBorderAlpha + (1f - baseBorderAlpha) * pulse.value
 
-    val baseContainerAlpha = if (emphasizeColor) (if (isSelected) 0.14f else 0f) else 0f
+    val baseContainerAlpha = if (emphasizeColor && isSelected) 0.14f else 0f
     val containerAlpha = baseContainerAlpha + (0.32f - baseContainerAlpha) * pulse.value
-
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val containerColor = remember(surfaceColor, categoryColor, containerAlpha) {
-        lerp(surfaceColor, categoryColor, containerAlpha)
-    }
+    val containerColor = lerp(MaterialTheme.colorScheme.surface, categoryColor, containerAlpha)
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedCard(
@@ -97,10 +79,8 @@ fun CategoryCard(
                         { showMenu = true }
                     } else null
                 ),
-            colors = CardDefaults.outlinedCardColors(
-                containerColor = containerColor
-            ),
-            border = BorderStroke(strokeWidth.dp, categoryColor.copy(alpha = borderAlpha))
+            colors = CardDefaults.outlinedCardColors(containerColor = containerColor),
+            border = BorderStroke(strokeWidth, categoryColor.copy(alpha = borderAlpha))
         ) {
             Row(
                 modifier = Modifier

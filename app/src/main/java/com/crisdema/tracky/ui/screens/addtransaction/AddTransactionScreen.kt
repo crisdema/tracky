@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,7 @@ fun AddTransactionScreen(
     val categories by viewModel.categories.collectAsState()
     val existingTransaction by viewModel.existingTransaction.collectAsState()
     val isEditMode = viewModel.isEditMode
+    val focusManager = LocalFocusManager.current
 
     var amountText by remember { mutableStateOf("") }
     var selectedCategoryId by remember { mutableStateOf("") }
@@ -72,6 +74,10 @@ fun AddTransactionScreen(
             ?: categories.first().id
     }
 
+    val parsedAmount = amountText.replace(',', '.').toDoubleOrNull()
+    val canSave = parsedAmount != null && parsedAmount > 0.0 && selectedCategoryId.isNotBlank()
+    val isLoadingExisting = isEditMode && !prefilled
+
     val titleRes = if (type == TransactionType.INCOME) R.string.add_income_title else R.string.add_expense_title
     val screenTitle = if (isEditMode) stringResource(R.string.edit_transaction_title) else stringResource(titleRes)
 
@@ -83,8 +89,48 @@ fun AddTransactionScreen(
             .format(dateFormatter)
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(screenTitle) }) }) { padding ->
-        if (isEditMode && !prefilled) {
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(screenTitle) }) },
+        bottomBar = {
+            if (!isLoadingExisting) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.background,
+                    tonalElevation = 0.dp
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .navigationBarsPadding()
+                            .imePadding()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                val amount = parsedAmount ?: return@Button
+                                if (selectedCategoryId.isBlank()) return@Button
+                                focusManager.clearFocus()
+                                viewModel.save(
+                                    amount = amount,
+                                    type = existingTransaction?.type ?: type,
+                                    categoryId = selectedCategoryId,
+                                    note = note,
+                                    date = selectedDateMillis,
+                                    onSaved = onDone
+                                )
+                            },
+                            enabled = canSave,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp)
+                        ) {
+                            Text(stringResource(R.string.action_save))
+                        }
+                    }
+                }
+            }
+        }
+    ) { padding ->
+        if (isLoadingExisting) {
             Box(
                 modifier = Modifier.padding(padding).fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -179,24 +225,6 @@ fun AddTransactionScreen(
                 selectedCategoryId = selectedCategoryId,
                 onCategorySelected = { selectedCategoryId = it }
             )
-
-            Button(
-                onClick = {
-                    val amount = amountText.toDoubleOrNull() ?: return@Button
-                    if (selectedCategoryId.isBlank()) return@Button
-                    viewModel.save(
-                        amount = amount,
-                        type = existingTransaction?.type ?: type,
-                        categoryId = selectedCategoryId,
-                        note = note,
-                        date = selectedDateMillis,
-                        onSaved = onDone
-                    )
-                },
-                modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
-            ) {
-                Text(stringResource(R.string.action_save))
-            }
         }
     }
 

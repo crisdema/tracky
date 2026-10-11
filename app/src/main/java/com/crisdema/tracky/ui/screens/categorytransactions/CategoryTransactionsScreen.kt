@@ -1,12 +1,10 @@
 package com.crisdema.tracky.ui.screens.categorytransactions
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -84,15 +82,15 @@ fun CategoryTransactionsScreen(
                             contentDescription = stringResource(R.string.action_back)
                         )
                     }
-                },
-                actions = {
-                    state.category?.let { category ->
-                        IconButton(onClick = { onAddTransaction(category.type) }) {
-                            Icon(Icons.Default.Add, contentDescription = addDesc)
-                        }
-                    }
                 }
             )
+        },
+        floatingActionButton = {
+            state.category?.let { category ->
+                FloatingActionButton(onClick = { onAddTransaction(category.type) }) {
+                    Icon(Icons.Default.Add, contentDescription = addDesc)
+                }
+            }
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxWidth()) {
@@ -130,7 +128,10 @@ fun CategoryTransactionsScreen(
                 }
             }
 
-            LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentPadding = PaddingValues(bottom = 88.dp)
+            ) {
                 groupedTransactions.forEach { (dateLabel, txns) ->
                     item(key = "header_$dateLabel") {
                         Text(

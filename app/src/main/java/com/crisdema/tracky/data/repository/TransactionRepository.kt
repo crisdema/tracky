@@ -38,7 +38,7 @@ class TransactionRepository @Inject constructor(
 
     suspend fun addTransaction(transaction: Transaction) {
         dao.upsert(transaction.copy(pendingSync = true))
-        pushIfPossible(transaction)
+        appScope.launch(Dispatchers.IO) { pushIfPossible(transaction) }
     }
 
     suspend fun deleteTransaction(spaceId: String, id: String) {
